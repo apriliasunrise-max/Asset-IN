@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, Database, Download, Plus, ShieldCheck } from 'lucide-react';
 import type { AuditLog, CensusPeriod, UserAccount } from '../types.ts';
-import { apiRequest, getSessionToken } from '../lib/api.ts';
+import { apiRequest } from '../lib/api.ts';
 
 interface SettingsViewProps {
   currentUser: UserAccount;
@@ -72,12 +72,8 @@ export function SettingsView({ currentUser, onPeriodChanged }: SettingsViewProps
   };
 
   const handleDownloadBackup = async () => {
-    const token = getSessionToken();
-    const res = await fetch('/api/settings/backup', {
-      headers: token ? { 'x-session-token': token } : {},
-    });
-    if (!res.ok) return;
-    const blob = await res.blob();
+    const backup = await apiRequest<Record<string, unknown>>('/settings/backup');
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
